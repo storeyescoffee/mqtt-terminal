@@ -84,7 +84,17 @@ def main():
 
     logger = setup_logger(config.LOG_FILE)
 
-    state = AppState(current_working_directory=os.getcwd())
+    # Start in the user's home directory so that `pwd` and all commands
+    # initially run from there instead of the script location.
+    home_dir = os.path.expanduser("~")
+    try:
+        os.chdir(home_dir)
+        initial_cwd = home_dir
+    except Exception:
+        # Fallback: keep current process directory if we can't change it
+        initial_cwd = os.getcwd()
+
+    state = AppState(current_working_directory=initial_cwd)
 
     signal.signal(signal.SIGINT, _signal_handler(logger, state))
     signal.signal(signal.SIGTERM, _signal_handler(logger, state))
